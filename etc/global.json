@@ -1,0 +1,20 @@
+{
+    "db": {
+        "user"      : "alex",
+        "password"  : "alex123",
+        "host"      : "anthill",
+        "database"  : "pornhub"
+    },
+    "task": {
+        "pornhub_massage": {
+            "template"  : "https://www.pornhub.com/video?o=mv&t=a&page=XXXXX",
+            "from"      : 267,
+            "to"        : 1000,
+            "output_url_prefix" : "https://www.pornhub.com"  
+        }
+    },
+    "proxy": {
+        "http": "socks5://127.0.0.1:1086",
+        "https": "socks5://127.0.0.1:1086" 
+    }
+}
