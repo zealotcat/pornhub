@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*- 
 #!/usr/bin/env python
+import requests
 import logging
 import json
 import bs4
 import re
 
-# 解析页面
-def parse_html(html):
+# 解析电影列表页面
+def parse_movie_list_html(html):
     soup = bs4.BeautifulSoup(html, "html.parser")
     ul = soup.find('ul', attrs={'class':'nf-videos videos search-video-thumbs'})
     # 将解析结果存放在哈希表
@@ -45,12 +46,13 @@ def fix_url(info, url_prefix):
         v['url'] = url_prefix + v['url']
     return
 
-# 存储解析结果
-"""
-数据存储在表pornhub.movie中，表定义如下：
-    create table movie(mid bigint primary key, name varchar(128) not null, url varchar(256) not null, views bigint not null, status int not null);
-    create index idx_movie_views on movie(views) ;
-"""
+# 存储pornhub电影列表，movie列表存储在pornhub.movie中，表定义如下:
+#     create table movie(mid bigint primary key, name varchar(128) not null, 
+#       url varchar(256) not null, views bigint not null, status int not null);
+# 
+# 状态信息status:
+#     0 - 未处理任务
+#     1 - 已经获取了电影的详细信息
 def import_movies(db, info):
     # SQL语句
     # Notes:
@@ -65,3 +67,38 @@ def import_movies(db, info):
     db.commit()
     cursor.close()
     return
+
+# 获取电影的具体信息
+def update_movie_info(db, mid, html):
+    soup = bs4.BeautifulSoup(html, "html.parser")
+    cursor = db.cursor()
+    # 获取电影浏览量
+    count = soup.find('div', attrs={'class':'rating-info-container'}).find('span', attrs={'class':'count'}).text.replace(',', '')
+    # 更新浏览量
+    sql = "update movie set views = %s and status = 1 where mid = %s"
+    cursor.execute(sql, [str(count), str(mid)])
+    # 获取演员
+    detail_div = soup.find('div', attrs={'class':'video-detailed-info'})
+    movie_star_list = detail_div.find('div', attrs={'class':'pornstarsWrapper'}).find_all('a', attrs={'data-mxptype':'Pornstar'})
+    # 插入演员表和演员列表
+    sql_star = "insert ignore into star values(%s, %s, %s)"
+    sql_casts = "insert ignore into casts (mid, sid) values (%s, %s)"
+    for s in movie_star_list:
+        cursor.execute(sql_star, [s['data-id'], s['data-mxptext'], "https://www.pornhub.com" + s['href']])
+        cursor.execute(sql_casts, [mid, s['data-id']])
+    # 插入电影分类
+    sql_category = "insert ignore into category values(%s, %s)"
+    category_list = detail_div.find('div', attrs={'class':'categoriesWrapper'}).find_all('a', onclick=re.compile('^ga'))
+    for c in category_list:
+        cursor.execute(sql_category, [mid, c.text])
+    # 插入电影的tag
+    sql_tag = "insert ignore into tag values(%s, %s)"
+    tag_list = detail_div.find('div', attrs={'class':'tagsWrapper'}).find_all('a', recursive=False)
+    for t in tag_list:
+        cursor.execute(sql_tag, [mid, t.text])
+    # 提交所有修改
+    db.commit()
+    cursor.close()
+    return
+
+

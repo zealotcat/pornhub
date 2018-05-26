@@ -11,11 +11,11 @@ import bs4
 
 # import user define function
 from crawler_helper import import_movies
-from crawler_helper import parse_html
+from crawler_helper import parse_movie_list_html
 from crawler_helper import fix_url
 
 # 解析命令行参数
-parser = argparse.ArgumentParser(description = "crawl pornhub ...")
+parser = argparse.ArgumentParser(description = "crawl pornhub movie list ...")
 parser.add_argument("-c", "--config", help="crawler config file", required = True)
 parser.add_argument("-t", "--taskname", help="task name", required = True)
 parser.add_argument("-l", "--level", help="logging level", required = False)
@@ -58,10 +58,10 @@ for page in range(from_page, to_page):
     logging.info("download page `%s` ...", url)
     res = requests.get(url, proxies=proxies)
     if res.status_code == 200:
-        movies = parse_html(res.text)
+        movies = parse_movie_list_html(res.text)
         fix_url(movies, C["task"][args.taskname]["output_url_prefix"])
         import_movies(db, movies)
-    time.sleep(15)
+    time.sleep(30)
 
 # 断开数据库连接
 logging.info("disconnect database!")
