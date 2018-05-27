@@ -56,7 +56,7 @@ for row in cursor.fetchall():
     res = requests.get(row[2], proxies=proxies)
     if res.status_code == 200:
         update_movie_info(db,row[0], res.text)
-    break
+    time.sleep(15)
 
 # 断开数据库连接
 logging.info("disconnect database!")

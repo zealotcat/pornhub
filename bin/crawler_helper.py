@@ -75,7 +75,7 @@ def update_movie_info(db, mid, html):
     # 获取电影浏览量
     count = soup.find('div', attrs={'class':'rating-info-container'}).find('span', attrs={'class':'count'}).text.replace(',', '')
     # 更新浏览量
-    sql = "update movie set views = %s and status = 1 where mid = %s"
+    sql = "update movie set views = %s, status = 1 where mid = %s"
     cursor.execute(sql, [str(count), str(mid)])
     # 获取演员
     detail_div = soup.find('div', attrs={'class':'video-detailed-info'})
