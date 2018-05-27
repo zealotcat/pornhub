@@ -50,7 +50,7 @@ db = mysql.connector.connect(user=C["db"]["user"], password=C["db"]["password"],
 
 # 查询所有的电影列表
 cursor = db.cursor()
-cursor.execute("select * from pornhub.movie where mid = 3045821")
+cursor.execute("select * from pornhub.movie where status = 0 order by views")
 for row in cursor.fetchall():
     logging.info('get movieid-%s information..', row[0])
     res = requests.get(row[2], proxies=proxies)
