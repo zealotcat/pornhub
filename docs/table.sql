@@ -1,4 +1,9 @@
 -- 电影列表
+-- status:
+--    -2: 该视频依法删除
+--    -1: 该视频禁止下载
+--     0: 视频还未处理
+--     1: 已下载视频基本信息
 create table movie(
     mid bigint primary key, 
     name varchar(128) not null, 
