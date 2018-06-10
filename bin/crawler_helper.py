@@ -73,14 +73,15 @@ def update_movie_info(db, mid, html):
     soup = bs4.BeautifulSoup(html, "html.parser")
     cursor = db.cursor()
     # 获取电影浏览量
-    count = soup.find('div', attrs={'class':'rating-info-container'}).find('span', attrs={'class':'count'}).text.replace(',', '')
+    count_div = soup.find('div', attrs={'class':'rating-info-container'})
     # 如果不包含rating信息
-    if count is None:
+    if count_div is None:
         sql = "update movie set status = -2 where mid = %s"
         cursor.execute(sql, [str(mid)])
         db.commit()
         cursor.close()
         return
+    count = count_div.find('span', attrs={'class':'count'}).text.replace(',', '')
     # 更新浏览量
     sql = "update movie set views = %s, status = 1 where mid = %s"
     cursor.execute(sql, [str(count), str(mid)])
